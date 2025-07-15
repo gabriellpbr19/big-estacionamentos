@@ -1,14 +1,201 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" style="background: white !important;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Estacionamentos</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Big Estacionamentos - Sistema de Reservas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Estilos principais mantidos */
+        .notification-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .car-color-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #d1d5db;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+        
+        /* Novos estilos para modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        /* Estilo melhorado para botões de ação */
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        .view-btn {
+            background-color: #dbeafe;
+            color: #3b82f6;
+        }
+        .edit-btn {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .delete-btn {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+        
+        /* Melhorias nas notificações */
+        .notification-item {
+            position: relative;
+            padding-left: 20px;
+        }
+        .notification-item::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+        }
+        .notification-item.read::before {
+            background-color: #9ca3af;
+        }
+        .notification-mark-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* Botões de modal melhorados */
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn-primary {
+            background-color: #1e40af;
+            color: white;
+            border: none;
+        }
+        .modal-btn-primary:hover {
+            background-color: #1e3a8a;
+        }
+        .modal-btn-secondary {
+            background-color: #f1f5f9;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+        .modal-btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        /* Estilo para notificações não lidas */
+        .notification-unread {
+            background-color: #f0f9ff;
+        }
+        
+        /* Ícones de tipo de notificação */
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        .notification-type-reserva {
+            background-color: #dbeafe;
+            color: #3b82f6;
+        }
+        .notification-type-confirmacao {
+            background-color: #dcfce7;
+            color: #22c55e;
+        }
+        .notification-type-pagamento {
+            background-color: #f0fdf4;
+            color: #16a34a;
+        }
+        .notification-type-edicao {
+            background-color: #fef9c3;
+            color: #eab308;
+        }
+        .notification-type-exclusao {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+        
+        /* Estilo para menu mobile */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .overlay {
+            display: none;
+        }
+        .overlay.open {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-     <div id="login-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-r from-blue-800 to-blue-600 z-50">
+    <!-- Tela de Login -->
+    <div id="login-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-r from-blue-800 to-blue-600 z-50">
         <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
             <div class="text-center mb-6">
                 <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
@@ -1388,4 +1575,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
