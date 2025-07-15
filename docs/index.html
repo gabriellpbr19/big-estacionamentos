@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Estacionamentos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+     <div id="login-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-r from-blue-800 to-blue-600 z-50">
+        <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
+            <div class="text-center mb-6">
+                <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-parking text-4xl text-blue-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Big Estacionamentos</h2>
+                <p class="text-gray-600 mt-2">Sistema de Gerenciamento de Reservas</p>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-gray-700 mb-4 text-center">Faça login com sua conta do Google para acessar o sistema</p>
+                <button id="google-login" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition duration-200 flex items-center justify-center">
+                    <i class="fab fa-google mr-3"></i> Entrar com Google
+                </button>
+            </div>
+            
+            <div class="text-sm text-gray-500 text-center mt-8">
+                <p>© 2025 Big Estacionamentos - Todos os direitos reservados</p>
+                <p class="mt-1">v3.0 - Sistema de Reservas</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sistema Principal -->
+    <div id="main-system" class="min-h-screen flex" style="display: none;">
+        <!-- Menu Mobile Button -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn fixed top-4 left-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-50">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+        
+        <!-- Overlay para mobile -->
+        <div class="overlay fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+        
+        <!-- Sidebar Menu -->
+        <div class="sidebar bg-white w-64 shadow-md flex flex-col z-40 fixed left-0 top-0 bottom-0">
+            <!-- Logo e Perfil -->
+            <div class="p-5 border-b flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full bg-gray-200 mb-3 flex items-center justify-center overflow-hidden">
+                    <img id="user-avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+                <h1 class="text-xl font-bold text-blue-600 text-center">BIG ESTACIONAMENTOS</h1>
+                <p class="text-xs text-gray-500 text-center">Sistema de Reservas</p>
+                <p id="user-name" class="text-sm font-medium mt-2">Administrador</p>
+            </div>
+            
+            <!-- Menu Items -->
+            <div class="flex-1 overflow-y-auto py-4">
+                <div class="menu-item active" data-tab="dashboard">
+                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                    </a>
+                </div>
+                
+                <div class="menu-item" data-tab="clientes">
+                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-users mr-3"></i> Clientes
+                    </a>
+                </div>
+                
+                <div class="menu-item" data-tab="relatorios">
+                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-chart-bar mr-3"></i> Relatórios
+                    </a>
+                </div>
+                
+                <div class="menu-item" data-tab="excluidos">
+                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-trash mr-3"></i> Excluídos
+                    </a>
+                </div>
+                
+                <div class="menu-item" data-tab="configuracoes">
+                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                        <i class="fas fa-cog mr-3"></i> Configurações
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 border-t text-center text-xs text-gray-500">
+                <button id="logout-btn" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Sair
+                </button>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="content-area flex-1 flex flex-col overflow-hidden ml-0 transition-all duration-300">
+            <!-- Top Bar -->
+            <header class="bg-white shadow py-4 px-6 flex justify-between items-center">
+                <div>
+                    <h2 id="page-title" class="text-lg font-semibold text-gray-800">Dashboard</h2>
+                    <p id="data-atualizacao" class="text-sm text-gray-500">Atualizado em ...</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button id="notifications-btn" class="text-gray-600 hover:text-blue-600 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Conteúdo Dinâmico -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-6">
+                <!-- Dashboard -->
+                <div id="dashboard" class="tab-content active">
+                    <!-- Cabeçalho e Controles -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Todas as Reservas</h2>
+                        </div>
+                        <div class="flex space-x-3 mt-3 md:mt-0">
+                            <button id="btn-export-excel" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-50">
+                                <i class="fas fa-file-excel text-green-600 mr-2"></i> Excel
+                            </button>
+                            <button id="btn-export-pdf" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-50">
+                                <i class="fas fa-file-pdf text-red-600 mr-2"></i> PDF
+                            </button>
+                            <button id="btn-atualizar" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center hover:bg-blue-700">
+                                <i class="fas fa-sync-alt mr-2"></i> Atualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Reservas -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ref.</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saída</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pessoas</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Malas</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-reservas" class="bg-white divide-y divide-gray-200">
+                                    <!-- Dados serão preenchidos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Clientes -->
+                <div id="clientes" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Gerenciamento de Clientes</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-3">Clientes Frequentes</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <i class="fas fa-user text-blue-600"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="font-medium">Carlos Silva</p>
+                                                <p class="text-sm text-gray-500">3 reservas</p>
+                                            </div>
+                                        </div>
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-user text-green-600"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="font-medium">Ana Oliveira</p>
+                                                <p class="text-sm text-gray-500">5 reservas</p>
+                                            </div>
+                                        </div>
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-3">Adicionar Novo Cliente</h3>
+                                <form class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                                        <input type="text" class="w-full px-3 py-2 border rounded-md">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                                            <input type="tel" class="w-full px-3 py-2 border rounded-md">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                                            <input type="email" class="w-full px-3 py-2 border rounded-md">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200">
+                                        Salvar Cliente
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Relatórios -->
+                <div id="relatorios" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Relatórios e Estatísticas</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-sm text-blue-700">Reservas Ativas</p>
+                                        <p class="text-2xl font-bold text-blue-800 mt-1">24</p>
+                                    </div>
+                                    <div class="bg-blue-100 p-2 rounded-lg">
+                                        <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-xs text-blue-700">+2 em relação ao mês anterior</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-sm text-green-700">Faturamento Mensal</p>
+                                        <p class="text-2xl font-bold text-green-800 mt-1">R$ 8.560,00</p>
+                                    </div>
+                                    <div class="bg-green-100 p-2 rounded-lg">
+                                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-xs text-green-700">+12% em relação ao mês anterior</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-sm text-purple-700">Taxa de Ocupação</p>
+                                        <p class="text-2xl font-bold text-purple-800 mt-1">78%</p>
+                                    </div>
+                                    <div class="bg-purple-100 p-2 rounded-lg">
+                                        <i class="fas fa-percent text-purple-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-xs text-purple-700">Média diária: 82%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Gerar Relatório</h3>
+                            <form class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+                                    <input type="date" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+                                    <input type="date" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Relatório</label>
+                                    <select class="w-full px-3 py-2 border rounded-md">
+                                        <option>Reservas Diárias</option>
+                                        <option>Faturamento Mensal</option>
+                                        <option>Ocupação por Período</option>
+                                        <option>Clientes Frequentes</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-3 flex justify-end space-x-3">
+                                    <button type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+                                        <i class="fas fa-times mr-2"></i> Cancelar
+                                    </button>
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                        <i class="fas fa-download mr-2"></i> Gerar Relatório
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Excluídos -->
+                <div id="excluidos" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Reservas Excluídas</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ref.</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Exclusão</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">R0676484448</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Silva, Lud</td>
+                                        <td class="px-4 py-3 text-sm font-mono">SC/QHB3</td>
+                                        <td class="px-4 py-3 text-sm">18/07/2025 14:22</td>
+                                        <td class="px-4 py-3 text-sm">
+                                            <button class="action-btn view-btn" title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="action-btn bg-green-100 text-green-600 ml-2" title="Restaurar">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">RS601510201</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Esselin, Pedro</td>
+                                        <td class="px-4 py-3 text-sm font-mono">SDA6008</td>
+                                        <td class="px-4 py-3 text-sm">17/07/2025 10:15</td>
+                                        <td class="px-4 py-3 text-sm">
+                                            <button class="action-btn view-btn" title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="action-btn bg-green-100 text-green-600 ml-2" title="Restaurar">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Configurações -->
+                <div id="configuracoes" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Configurações do Sistema</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Preços e Tarifas</h3>
+                                <form class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor Diária (R$)</label>
+                                        <input type="number" value="45.00" class="w-full px-3 py-2 border rounded-md">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor Semanal (R$)</label>
+                                        <input type="number" value="280.00" class="w-full px-3 py-2 border rounded-md">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Taxa de Limpeza (R$)</label>
+                                        <input type="number" value="25.00" class="w-full px-3 py-2 border rounded-md">
+                                    </div>
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                        Salvar Alterações
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Preferências</h3>
+                                <form class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Horário de Funcionamento</label>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <input type="time" value="08:00" class="w-full px-3 py-2 border rounded-md">
+                                            <input type="time" value="20:00" class="w-full px-3 py-2 border rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Notificações</label>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="notif-email" class="mr-2" checked>
+                                                <label for="notif-email" class="text-sm text-gray-700">Receber notificações por e-mail</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="notif-sms" class="mr-2">
+                                                <label for="notif-sms" class="text-sm text-gray-700">Receber notificações por SMS</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Capacidade Máxima</label>
+                                        <input type="number" value="120" class="w-full px-3 py-2 border rounded-md">
+                                    </div>
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                        Salvar Preferências
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel de Notificações -->
+    <div id="notifications-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="border-b px-6 py-4 flex justify-between items-center">
+            <h3 class="text-lg font-semibold">Notificações</h3>
+            <button id="close-notifications" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <!-- Botões de ação para notificações -->
+        <div class="p-4 border-b flex space-x-2">
+            <button id="mark-all-read" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-blue-200">
+                <i class="fas fa-check-circle mr-2"></i> Marcar como lidas
+            </button>
+            <button id="mark-all-unread" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-300">
+                <i class="fas fa-times-circle mr-2"></i> Marcar como não lidas
+            </button>
+        </div>
+        
+        <div class="overflow-y-auto h-[calc(100%-120px)]">
+            <div id="notifications-list" class="divide-y divide-gray-200">
+                <!-- Notificações serão preenchidas via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Reserva -->
+    <div id="view-reservation-modal" class="modal">
+        <div class="modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Detalhes da Reserva</h3>
+                    <button id="close-view-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="view-reservation-content"></div>
+                <div class="mt-6 flex justify-end">
+                    <button id="voltar-view-modal" class="modal-btn modal-btn-secondary mr-2">
+                        Voltar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Reserva -->
+    <div id="edit-reservation-modal" class="modal">
+        <div class="modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Editar Reserva</h3>
+                    <button id="close-edit-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="edit-reservation-content"></div>
+                <div class="mt-6 flex justify-end">
+                    <button id="cancelar-edit-modal" class="modal-btn modal-btn-secondary mr-2">
+                        Cancelar
+                    </button>
+                    <button id="salvar-alteracoes" class="modal-btn modal-btn-primary">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-reservation-modal" class="modal">
+        <div class="modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Confirmar Exclusão</h3>
+                    <button id="close-delete-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="delete-reservation-content"></div>
+                <div class="mt-6 flex justify-end">
+                    <button id="cancelar-delete-modal" class="modal-btn modal-btn-secondary mr-2">
+                        Cancelar
+                    </button>
+                    <button id="confirmar-exclusao" class="modal-btn modal-btn-primary bg-red-600 hover:bg-red-700">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mapeamento de cores para nomes
+        const colorMap = {
+            "Cinza": "#808080",
+            "Prata": "#c0c0c0",
+            "Preto": "#000000",
+            "Vermelho": "#ff0000",
+            "Azul": "#0000ff",
+            "Verde": "#008000",
+            "Amarelo": "#ffff00",
+            "Branco": "#ffffff",
+            "Laranja": "#ffa500",
+            "Roxo": "#800080",
+            "Rosa": "#ffc0cb",
+            "Marrom": "#a52a2a"
+        };
+
+        // Estado do sistema
+        const state = {
+            loggedIn: false,
+            user: null,
+            reservations: [
+                {
+                    id: 1,
+                    reference: "R0676484448",
+                    name: "Silva, Lud",
+                    email: "lucinbarros@gmail.com",
+                    phone: "(62) 99123-4567",
+                    car: "Fiat Mobi",
+                    plate: "SC/QHB3",
+                    color: "Cinza",
+                    entryDate: "17/07/2025",
+                    entryTime: "10:30",
+                    exitDate: "21/07/2025",
+                    exitTime: "14:00",
+                    people: 2,
+                    luggage: 3,
+                    price: 175.00,
+                    status: "confirmada",
+                    notes: "Gostaria de uma cotação de estacionamento em Pirenópolis",
+                    type: "Chegada"
+                },
+                {
+                    id: 2,
+                    reference: "RS601510201",
+                    name: "Esselin, Pedro",
+                    email: "pedroesselin@gmail.com",
+                    phone: "(62) 99692-9874",
+                    car: "Cruze",
+                    plate: "SDA6008",
+                    color: "Preto",
+                    entryDate: "09/07/2025",
+                    entryTime: "09:15",
+                    exitDate: "16/07/2025",
+                    exitTime: "18:45",
+                    people: 4,
+                    luggage: 5,
+                    price: 280.00,
+                    status: "pendente",
+                    notes: "",
+                    type: "Chegada"
+                },
+                {
+                    id: 3,
+                    reference: "RES-20250719",
+                    name: "Rodrigo Ferreira",
+                    email: "Rodrigoof_@hotmail.com",
+                    phone: "(62) 99327-0426",
+                    car: "Fiat Mobi",
+                    plate: "PAS5306",
+                    color: "Prata",
+                    entryDate: "19/07/2025",
+                    entryTime: "12:00",
+                    exitDate: "22/07/2025",
+                    exitTime: "18:00",
+                    people: 2,
+                    luggage: 0,
+                    price: 0,
+                    status: "nova",
+                    notes: "Gostaria de uma cotação de estacionamento em Pirenópolis",
+                    type: "Chegada"
+                },
+                {
+                    id: 4,
+                    reference: "RES-20250718",
+                    name: "Aristides Borges",
+                    email: "netojf2012.2014@gmail.com",
+                    phone: "(62) 99692-9874",
+                    car: "Cruze",
+                    plate: "RBM4B13",
+                    color: "Azul",
+                    entryDate: "18/07/2025",
+                    entryTime: "02:30",
+                    exitDate: "05/08/2025",
+                    exitTime: "00:30",
+                    people: 4,
+                    luggage: 6,
+                    price: 0,
+                    status: "nova",
+                    notes: "",
+                    type: "Chegada"
+                }
+            ],
+            notifications: [
+                {
+                    id: 1,
+                    title: "Nova reserva recebida",
+                    message: "Rodrigo Ferreira - Placa PAS5306",
+                    timestamp: "19/07/2025 14:15",
+                    read: false,
+                    type: "reserva",
+                    reservationId: 3
+                },
+                {
+                    id: 2,
+                    title: "Nova reserva recebida",
+                    message: "Ana Carolina - Placa RED-2025",
+                    timestamp: "19/07/2025 13:42",
+                    read: false,
+                    type: "reserva",
+                    reservationId: null
+                },
+                {
+                    id: 3,
+                    title: "Reserva confirmada",
+                    message: "Carlos Silva - Placa ABC-1234",
+                    timestamp: "19/07/2025 11:30",
+                    read: true,
+                    type: "confirmacao",
+                    reservationId: 1
+                },
+                {
+                    id: 4,
+                    title: "Pagamento recebido",
+                    message: "Maria Oliveira - Valor R$ 320,00",
+                    timestamp: "18/07/2025 16:45",
+                    read: true,
+                    type: "pagamento",
+                    reservationId: 2
+                }
+            ]
+        };
+        
+        // Atualizar data/hora
+        function atualizarDataHora() {
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR');
+            const horaFormatada = agora.toLocaleTimeString('pt-BR');
+            document.getElementById('data-atualizacao').textContent = 
+                `Atualizado em ${dataFormatada} às ${horaFormatada}`;
+        }
+        
+        // Renderizar reservas
+        function renderizarReservas() {
+            const tbody = document.getElementById('tabela-reservas');
+            tbody.innerHTML = '';
+            
+            state.reservations.forEach(reserva => {
+                const statusClass = reserva.status === 'confirmada' 
+                    ? 'bg-green-100 text-green-800' 
+                    : reserva.status === 'pendente'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-blue-100 text-blue-800';
+                
+                const statusText = reserva.status === 'confirmada' 
+                    ? 'Confirmada' 
+                    : reserva.status === 'pendente'
+                    ? 'Pendente'
+                    : 'Nova';
+                
+                const tr = document.createElement('tr');
+                if(reserva.status === 'nova') {
+                    tr.classList.add('bg-blue-50');
+                }
+                
+                // Obter código de cor do mapeamento
+                const colorCode = colorMap[reserva.color] || '#cccccc';
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${reserva.reference}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${reserva.name}</td>
+                    <td class="px-4 py-3 text-sm">${reserva.phone}</td>
+                    <td class="px-4 py-3 text-sm text-blue-600">${reserva.email}</td>
+                    <td class="px-4 py-3 text-sm font-mono">${reserva.plate}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <span class="car-color-indicator" style="background-color: ${colorCode};"></span>
+                        <span class="text-xs">${reserva.color}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        ${reserva.entryDate}<br>
+                        <span class="text-xs text-gray-500">${reserva.entryTime}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        ${reserva.exitDate}<br>
+                        <span class="text-xs text-gray-500">${reserva.exitTime}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-center">${reserva.people}</td>
+                    <td class="px-4 py-3 text-sm text-center">${reserva.luggage}</td>
+                    <td class="px-4 py-3">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm flex space-x-2">
+                        <button class="action-btn view-btn" data-id="${reserva.id}" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn" data-id="${reserva.id}" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${reserva.id}" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Adicionar event listeners aos botões
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const reserva = state.reservations.find(r => r.id == id);
+                    visualizarReserva(reserva);
+                });
+            });
+            
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const reserva = state.reservations.find(r => r.id == id);
+                    editarReserva(reserva);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const reserva = state.reservations.find(r => r.id == id);
+                    confirmarExclusaoReserva(reserva);
+                });
+            });
+        }
+        
+        // Renderizar notificações
+        function renderizarNotificacoes() {
+            const container = document.getElementById('notifications-list');
+            container.innerHTML = '';
+            
+            const unreadCount = state.notifications.filter(n => !n.read).length;
+            document.getElementById('notification-count').textContent = unreadCount;
+            
+            state.notifications.forEach(notificacao => {
+                const div = document.createElement('div');
+                div.className = `p-4 notification-item relative ${notificacao.read ? 'read' : 'notification-unread'}`;
+                div.dataset.id = notificacao.id;
+                
+                // Determinar classe e ícone baseado no tipo
+                let typeClass = '';
+                let icon = '';
+                
+                switch(notificacao.type) {
+                    case 'reserva':
+                        typeClass = 'notification-type-reserva';
+                        icon = 'fa-calendar-plus';
+                        break;
+                    case 'confirmacao':
+                        typeClass = 'notification-type-confirmacao';
+                        icon = 'fa-check-circle';
+                        break;
+                    case 'pagamento':
+                        typeClass = 'notification-type-pagamento';
+                        icon = 'fa-money-bill-wave';
+                        break;
+                    case 'edicao':
+                        typeClass = 'notification-type-edicao';
+                        icon = 'fa-edit';
+                        break;
+                    case 'exclusao':
+                        typeClass = 'notification-type-exclusao';
+                        icon = 'fa-trash';
+                        break;
+                    default:
+                        typeClass = 'notification-type-reserva';
+                        icon = 'fa-info-circle';
+                }
+                
+                div.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="notification-icon ${typeClass}">
+                            <i class="fas ${icon} text-xs"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium">${notificacao.title}</p>
+                            <p class="text-sm text-gray-600 mt-1">${notificacao.message}</p>
+                            <p class="text-xs text-gray-500 mt-2">${notificacao.timestamp}</p>
+                        </div>
+                    </div>
+                    <button class="notification-mark-btn" data-id="${notificacao.id}">
+                        ${notificacao.read ? 'Marcar como não lida' : 'Marcar como lida'}
+                    </button>
+                `;
+                
+                // Adicionar evento para marcar/desmarcar como lida
+                const markBtn = div.querySelector('.notification-mark-btn');
+                markBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const notif = state.notifications.find(n => n.id == id);
+                    notif.read = !notif.read;
+                    renderizarNotificacoes();
+                });
+                
+                container.appendChild(div);
+            });
+        }
+        
+        // Visualizar reserva
+        function visualizarReserva(reserva) {
+            state.currentReservation = reserva;
+            const container = document.getElementById('view-reservation-content');
+            const colorCode = colorMap[reserva.color] || '#cccccc';
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Referência</label>
+                            <p class="mt-1">${reserva.reference}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nome</label>
+                            <p class="mt-1">${reserva.name}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                            <p class="mt-1">${reserva.phone}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">E-mail</label>
+                            <p class="mt-1 text-blue-600">${reserva.email}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Veículo</label>
+                            <p class="mt-1">${reserva.car}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Placa</label>
+                            <p class="mt-1 font-mono">${reserva.plate}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Cor</label>
+                            <div class="mt-1 flex items-center">
+                                <span class="car-color-indicator" style="background-color: ${colorCode};"></span>
+                                <span>${reserva.color}</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <span class="mt-1 status-badge ${reserva.status === 'confirmada' ? 'bg-green-100 text-green-800' : reserva.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}">
+                                ${reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Entrada</label>
+                            <p class="mt-1">${reserva.entryDate} às ${reserva.entryTime}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Saída</label>
+                            <p class="mt-1">${reserva.exitDate} às ${reserva.exitTime}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pessoas</label>
+                            <p class="mt-1">${reserva.people}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Malas</label>
+                            <p class="mt-1">${reserva.luggage}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Observações</label>
+                        <p class="mt-1 bg-gray-50 p-3 rounded-lg">${reserva.notes || 'Nenhuma observação'}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('view-reservation-modal').style.display = 'flex';
+        }
+        
+        // Editar reserva
+        function editarReserva(reserva) {
+            state.currentReservation = reserva;
+            const container = document.getElementById('edit-reservation-content');
+            const colorCode = colorMap[reserva.color] || '#cccccc';
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nome</label>
+                            <input type="text" id="edit-name" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.name}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                            <input type="text" id="edit-phone" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.phone}">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">E-mail</label>
+                            <input type="email" id="edit-email" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.email}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Veículo</label>
+                            <input type="text" id="edit-car" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.car}">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Placa</label>
+                            <input type="text" id="edit-plate" class="mt-1 w-full px-3 py-2 border rounded-md font-mono" value="${reserva.plate}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Cor</label>
+                            <select id="edit-color" class="mt-1 w-full px-3 py-2 border rounded-md">
+                                ${Object.keys(colorMap).map(color => 
+                                    `<option value="${color}" ${color === reserva.color ? 'selected' : ''}>${color}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Entrada</label>
+                            <input type="text" id="edit-entry" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.entryDate} ${reserva.entryTime}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Saída</label>
+                            <input type="text" id="edit-exit" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.exitDate} ${reserva.exitTime}">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <select id="edit-status" class="mt-1 w-full px-3 py-2 border rounded-md">
+                                <option value="nova" ${reserva.status === 'nova' ? 'selected' : ''}>Nova</option>
+                                <option value="pendente" ${reserva.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+                                <option value="confirmada" ${reserva.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                            <input type="number" id="edit-price" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.price}">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pessoas</label>
+                            <input type="number" id="edit-people" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.people}">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Malas</label>
+                            <input type="number" id="edit-luggage" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.luggage}">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Observações</label>
+                        <textarea id="edit-notes" class="mt-1 w-full px-3 py-2 border rounded-md h-24">${reserva.notes || ''}</textarea>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('edit-reservation-modal').style.display = 'flex';
+        }
+        
+        // Confirmar exclusão de reserva
+        function confirmarExclusaoReserva(reserva) {
+            state.currentReservation = reserva;
+            const container = document.getElementById('delete-reservation-content');
+            
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
+                    <p class="mb-4">Tem certeza que deseja excluir a reserva de <strong>${reserva.name}</strong>?</p>
+                    <div class="bg-gray-50 p-4 rounded-lg text-left">
+                        <p class="text-sm"><span class="font-medium">Placa:</span> ${reserva.plate}</p>
+                        <p class="text-sm"><span class="font-medium">Período:</span> ${reserva.entryDate} ${reserva.entryTime} - ${reserva.exitDate} ${reserva.exitTime}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('delete-reservation-modal').style.display = 'flex';
+        }
+        
+        // Gerar PDF das reservas
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Título
+            doc.setFontSize(18);
+            doc.text('Relatório de Reservas - Big Estacionamentos', 14, 22);
+            
+            // Data
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${dataAtual}`, 14, 30);
+            
+            // Cabeçalhos da tabela
+            const headers = [
+                'Ref.', 
+                'Nome', 
+                'Telefone', 
+                'E-mail', 
+                'Placa', 
+                'Cor', 
+                'Entrada', 
+                'Saída', 
+                'Pessoas',
+                'Malas',
+                'Status'
+            ];
+            
+            // Dados da tabela
+            const data = state.reservations.map(reserva => [
+                reserva.reference,
+                reserva.name,
+                reserva.phone,
+                reserva.email,
+                reserva.plate,
+                reserva.color,
+                `${reserva.entryDate} ${reserva.entryTime}`,
+                `${reserva.exitDate} ${reserva.exitTime}`,
+                reserva.people,
+                reserva.luggage,
+                reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova'
+            ]);
+            
+            // Criar tabela
+            doc.autoTable({
+                startY: 35,
+                head: [headers],
+                body: data,
+                theme: 'grid',
+                styles: {
+                    fontSize: 10
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                }
+            });
+            
+            // Salvar o PDF
+            doc.save(`reservas_big_estacionamentos_${new Date().getTime()}.pdf`);
+        }
+        
+        // Gerar Excel das reservas
+        function gerarExcel() {
+            // Preparar dados
+            const dados = state.reservations.map(reserva => ({
+                'Referência': reserva.reference,
+                'Nome': reserva.name,
+                'Telefone': reserva.phone,
+                'E-mail': reserva.email,
+                'Veículo': reserva.car,
+                'Placa': reserva.plate,
+                'Cor': reserva.color,
+                'Entrada': `${reserva.entryDate} ${reserva.entryTime}`,
+                'Saída': `${reserva.exitDate} ${reserva.exitTime}`,
+                'Pessoas': reserva.people,
+                'Malas': reserva.luggage,
+                'Valor': reserva.price,
+                'Status': reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova',
+                'Observações': reserva.notes
+            }));
+            
+            // Criar planilha
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reservas");
+            
+            // Gerar arquivo e fazer download
+            XLSX.writeFile(wb, `reservas_big_estacionamentos_${new Date().getTime()}.xlsx`);
+        }
+        
+        // Adicionar notificação
+        function adicionarNotificacao(titulo, mensagem, tipo, reservationId = null) {
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR');
+            const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const novaNotificacao = {
+                id: state.notifications.length + 1,
+                title: titulo,
+                message: mensagem,
+                timestamp: `${dataFormatada} ${horaFormatada}`,
+                read: false,
+                type: tipo,
+                reservationId: reservationId
+            };
+            
+            state.notifications.unshift(novaNotificacao);
+            renderizarNotificacoes();
+        }
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simular login automático para demonstração
+            setTimeout(() => {
+                // Esconder tela de login e mostrar sistema
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-system').style.display = 'flex';
+                
+                // Renderizar dados iniciais
+                atualizarDataHora();
+                renderizarReservas();
+                renderizarNotificacoes();
+            }, 1000);
+            
+            // Login com Google (simulado)
+            document.getElementById('google-login').addEventListener('click', function() {
+                // Simular login bem-sucedido
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-system').style.display = 'flex';
+                
+                // Renderizar dados iniciais
+                atualizarDataHora();
+                renderizarReservas();
+                renderizarNotificacoes();
+            });
+            
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('main-system').style.display = 'none';
+            });
+            
+            // Menu navigation
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    document.querySelectorAll('.menu-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                        tab.classList.add('hidden');
+                    });
+                    
+                    // Show selected tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.remove('hidden');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Update page title
+                    document.getElementById('page-title').textContent = 
+                        this.querySelector('a').textContent.trim();
+                    
+                    // Close mobile menu after selection
+                    document.querySelector('.sidebar').classList.remove('open');
+                    document.querySelector('.overlay').classList.remove('open');
+                });
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('open');
+                document.querySelector('.overlay').classList.toggle('open');
+            });
+            
+            // Overlay close menu
+            document.querySelector('.overlay').addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.remove('open');
+                this.classList.remove('open');
+            });
+            
+            // Botão de notificações
+            document.getElementById('notifications-btn').addEventListener('click', function() {
+                document.getElementById('notifications-panel').classList.toggle('translate-x-full');
+                document.getElementById('notifications-panel').classList.toggle('translate-x-0');
+            });
+            
+            // Fechar painel de notificações
+            document.getElementById('close-notifications').addEventListener('click', function() {
+                document.getElementById('notifications-panel').classList.add('translate-x-full');
+                document.getElementById('notifications-panel').classList.remove('translate-x-0');
+            });
+            
+            // Marcar todas como lidas
+            document.getElementById('mark-all-read').addEventListener('click', function() {
+                state.notifications.forEach(notificacao => {
+                    notificacao.read = true;
+                });
+                renderizarNotificacoes();
+            });
+            
+            // Marcar todas como não lidas
+            document.getElementById('mark-all-unread').addEventListener('click', function() {
+                state.notifications.forEach(notificacao => {
+                    notificacao.read = false;
+                });
+                renderizarNotificacoes();
+            });
+            
+            // Fechar modais
+            document.getElementById('close-view-modal').addEventListener('click', function() {
+                document.getElementById('view-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-edit-modal').addEventListener('click', function() {
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-delete-modal').addEventListener('click', function() {
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+            });
+            
+            // Botões "Voltar" e "Cancelar"
+            document.getElementById('voltar-view-modal').addEventListener('click', function() {
+                document.getElementById('view-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelar-edit-modal').addEventListener('click', function() {
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelar-delete-modal').addEventListener('click', function() {
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+            });
+            
+            // Fechar modais ao clicar fora
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Botão Atualizar
+            document.getElementById('btn-atualizar').addEventListener('click', function() {
+                const btn = this;
+                const originalHtml = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i> Atualizando...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    atualizarDataHora();
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }, 1500);
+            });
+            
+            // Botão de confirmação de exclusão
+            document.getElementById('confirmar-exclusao').addEventListener('click', function() {
+                const reserva = state.currentReservation;
+                // Remover a reserva do estado
+                state.reservations = state.reservations.filter(r => r.id !== reserva.id);
+                // Atualizar a tabela
+                renderizarReservas();
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+                
+                // Adicionar notificação de exclusão
+                adicionarNotificacao(
+                    "Reserva excluída", 
+                    `${reserva.name} - Placa ${reserva.plate}`, 
+                    "exclusao"
+                );
+                
+                alert("Reserva excluída com sucesso!");
+            });
+            
+            // Botão Salvar Alterações
+            document.getElementById('salvar-alteracoes').addEventListener('click', function() {
+                const reserva = state.currentReservation;
+                
+                // Coletar valores editados
+                reserva.name = document.getElementById('edit-name').value;
+                reserva.phone = document.getElementById('edit-phone').value;
+                reserva.email = document.getElementById('edit-email').value;
+                reserva.car = document.getElementById('edit-car').value;
+                reserva.plate = document.getElementById('edit-plate').value;
+                reserva.color = document.getElementById('edit-color').value;
+                
+                // Processar datas
+                const entrada = document.getElementById('edit-entry').value.split(' ');
+                reserva.entryDate = entrada[0];
+                reserva.entryTime = entrada[1];
+                
+                const saida = document.getElementById('edit-exit').value.split(' ');
+                reserva.exitDate = saida[0];
+                reserva.exitTime = saida[1];
+                
+                reserva.status = document.getElementById('edit-status').value;
+                reserva.price = parseFloat(document.getElementById('edit-price').value);
+                reserva.people = parseInt(document.getElementById('edit-people').value);
+                reserva.luggage = parseInt(document.getElementById('edit-luggage').value);
+                reserva.notes = document.getElementById('edit-notes').value;
+                
+                // Atualizar a tabela
+                renderizarReservas();
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+                
+                // Adicionar notificação de edição
+                adicionarNotificacao(
+                    "Reserva editada", 
+                    `${reserva.name} - Placa ${reserva.plate}`, 
+                    "edicao",
+                    reserva.id
+                );
+                
+                alert("Reserva atualizada com sucesso!");
+            });
+            
+            // Exportar para Excel
+            document.getElementById('btn-export-excel').addEventListener('click', function() {
+                gerarExcel();
+            });
+            
+            // Exportar para PDF
+            document.getElementById('btn-export-pdf').addEventListener('click', function() {
+                gerarPDF();
+            });
+        });
+    </script>
+</body>
+</html>
