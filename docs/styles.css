@@ -1,0 +1,55 @@
+/* Estilos principais mantidos */
+.notification-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+.car-color-indicator {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+/* Novos estilos para modais */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ... (todos os outros estilos) ... */
+
+/* Estilo para menu mobile */
+.sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+.sidebar.open {
+    transform: translateX(0);
+}
+.overlay {
+    display: none;
+}
+.overlay.open {
+    display: block;
+}
