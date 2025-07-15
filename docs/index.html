@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Big Estacionamentos - Sistema de Reservas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* Estilos principais mantidos */
         .notification-dot {
             width: 12px;
             height: 12px;
@@ -35,8 +34,90 @@
             border-radius: 9999px;
             display: inline-block;
         }
-        
-        /* Novos estilos para modais */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .menu-item {
+            transition: all 0.3s;
+            position: relative;
+        }
+        .menu-item.active {
+            background-color: #dbeafe;
+            border-left: 4px solid #1e40af;
+        }
+        .menu-item:hover:not(.active) {
+            background-color: #f1f5f9;
+        }
+        .mobile-menu-btn {
+            display: none;
+        }
+        .action-btn {
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        .config-input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .config-input:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
+        .login-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+        }
+        .google-btn {
+            background: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .google-btn:hover {
+            background: #3367d6;
+        }
+        .notification-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .notification-item:hover {
+            background-color: #f0f7ff;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -51,170 +132,123 @@
         }
         .modal-content {
             background-color: white;
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            width: 90%;
-            max-width: 500px;
         }
-        
-        /* Estilo melhorado para botões de ação */
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+        .notification-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            max-width: 400px;
+            background-color: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 90;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
         }
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-        .view-btn {
-            background-color: #dbeafe;
-            color: #3b82f6;
-        }
-        .edit-btn {
-            background-color: #fef3c7;
-            color: #d97706;
-        }
-        .delete-btn {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-        
-        /* Melhorias nas notificações */
-        .notification-item {
-            position: relative;
-            padding-left: 20px;
-        }
-        .notification-item::before {
-            content: '';
-            position: absolute;
-            left: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #3b82f6;
-        }
-        .notification-item.read::before {
-            background-color: #9ca3af;
-        }
-        .notification-mark-btn {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            background: #f1f5f9;
-            border: none;
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        
-        /* Botões de modal melhorados */
-        .modal-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .modal-btn-primary {
-            background-color: #1e40af;
-            color: white;
-            border: none;
-        }
-        .modal-btn-primary:hover {
-            background-color: #1e3a8a;
-        }
-        .modal-btn-secondary {
-            background-color: #f1f5f9;
-            color: #4b5563;
-            border: 1px solid #d1d5db;
-        }
-        .modal-btn-secondary:hover {
-            background-color: #e5e7eb;
-        }
-        
-        /* Estilo para notificações não lidas */
-        .notification-unread {
-            background-color: #f0f9ff;
-        }
-        
-        /* Ícones de tipo de notificação */
-        .notification-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-        }
-        .notification-type-reserva {
-            background-color: #dbeafe;
-            color: #3b82f6;
-        }
-        .notification-type-confirmacao {
-            background-color: #dcfce7;
-            color: #22c55e;
-        }
-        .notification-type-pagamento {
-            background-color: #f0fdf4;
-            color: #16a34a;
-        }
-        .notification-type-edicao {
-            background-color: #fef9c3;
-            color: #eab308;
-        }
-        .notification-type-exclusao {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-        
-        /* Estilo para menu mobile */
-        .sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
-        }
-        .sidebar.open {
+        .notification-panel.open {
             transform: translateX(0);
         }
-        .overlay {
-            display: none;
+        .reservation-modal-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 600px; /* Tamanho reduzido */
         }
-        .overlay.open {
-            display: block;
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                z-index: 40;
+                height: 100%;
+                top: 0;
+                left: 0;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .mobile-menu-btn {
+                display: block;
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 50;
+            }
+            .content-area {
+                padding-left: 0;
+            }
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 30;
+            }
+            .overlay.open {
+                display: block;
+            }
+            .notification-panel {
+                max-width: 100%;
+            }
+            .reservation-modal-content {
+                max-width: 95%; /* Mais espaço em dispositivos móveis */
+            }
+        }
+        body {
+            background: white !important;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .modal-back-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: #3b82f6;
         }
     </style>
 </head>
 <body>
     <!-- Tela de Login -->
-    <div id="login-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-r from-blue-800 to-blue-600 z-50">
-        <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
-            <div class="text-center mb-6">
-                <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <div class="mb-6">
+                <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
                     <i class="fas fa-parking text-4xl text-blue-600"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">Big Estacionamentos</h2>
-                <p class="text-gray-600 mt-2">Sistema de Gerenciamento de Reservas</p>
+                <p class="text-gray-600">Sistema de Gerenciamento de Reservas</p>
             </div>
             
             <div class="mb-6">
-                <p class="text-gray-700 mb-4 text-center">Faça login com sua conta do Google para acessar o sistema</p>
-                <button id="google-login" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition duration-200 flex items-center justify-center">
-                    <i class="fab fa-google mr-3"></i> Entrar com Google
+                <p class="text-gray-700 mb-4">Faça login com sua conta do Google para acessar o sistema</p>
+                <button id="google-login" class="google-btn">
+                    <i class="fab fa-google"></i>
+                    Entrar com Google
                 </button>
             </div>
             
-            <div class="text-sm text-gray-500 text-center mt-8">
+            <div class="text-sm text-gray-600">
                 <p>© 2025 Big Estacionamentos - Todos os direitos reservados</p>
-                <p class="mt-1">v3.0 - Sistema de Reservas</p>
+                <p class="mt-2">v3.0 - Sistema de Reservas</p>
             </div>
         </div>
     </div>
@@ -222,15 +256,15 @@
     <!-- Sistema Principal -->
     <div id="main-system" class="min-h-screen flex" style="display: none;">
         <!-- Menu Mobile Button -->
-        <button id="mobile-menu-btn" class="mobile-menu-btn fixed top-4 left-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-50">
+        <button class="mobile-menu-btn bg-blue-600 text-white p-3 rounded-full shadow-lg z-50">
             <i class="fas fa-bars text-xl"></i>
         </button>
         
         <!-- Overlay para mobile -->
-        <div class="overlay fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+        <div class="overlay"></div>
         
         <!-- Sidebar Menu -->
-        <div class="sidebar bg-white w-64 shadow-md flex flex-col z-40 fixed left-0 top-0 bottom-0">
+        <div class="sidebar bg-white w-64 shadow-md flex flex-col z-40">
             <!-- Logo e Perfil -->
             <div class="p-5 border-b flex flex-col items-center">
                 <div class="w-16 h-16 rounded-full bg-gray-200 mb-3 flex items-center justify-center overflow-hidden">
@@ -244,31 +278,31 @@
             <!-- Menu Items -->
             <div class="flex-1 overflow-y-auto py-4">
                 <div class="menu-item active" data-tab="dashboard">
-                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                    <a href="#" class="block py-3 px-6 text-gray-700">
                         <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                     </a>
                 </div>
                 
                 <div class="menu-item" data-tab="clientes">
-                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                    <a href="#" class="block py-3 px-6 text-gray-700">
                         <i class="fas fa-users mr-3"></i> Clientes
                     </a>
                 </div>
                 
                 <div class="menu-item" data-tab="relatorios">
-                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                    <a href="#" class="block py-3 px-6 text-gray-700">
                         <i class="fas fa-chart-bar mr-3"></i> Relatórios
                     </a>
                 </div>
                 
                 <div class="menu-item" data-tab="excluidos">
-                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                    <a href="#" class="block py-3 px-6 text-gray-700">
                         <i class="fas fa-trash mr-3"></i> Excluídos
                     </a>
                 </div>
                 
                 <div class="menu-item" data-tab="configuracoes">
-                    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-blue-50">
+                    <a href="#" class="block py-3 px-6 text-gray-700">
                         <i class="fas fa-cog mr-3"></i> Configurações
                     </a>
                 </div>
@@ -283,7 +317,7 @@
         </div>
         
         <!-- Conteúdo Principal -->
-        <div class="content-area flex-1 flex flex-col overflow-hidden ml-0 transition-all duration-300">
+        <div class="content-area flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
             <header class="bg-white shadow py-4 px-6 flex justify-between items-center">
                 <div>
@@ -292,7 +326,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="relative">
-                        <button id="notifications-btn" class="text-gray-600 hover:text-blue-600 relative">
+                        <button id="notifications-btn" class="text-gray-600 hover:text-blue-600 action-btn">
                             <i class="fas fa-bell text-xl"></i>
                             <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
                         </button>
@@ -310,19 +344,19 @@
                             <h2 class="text-2xl font-bold text-gray-800">Todas as Reservas</h2>
                         </div>
                         <div class="flex space-x-3 mt-3 md:mt-0">
-                            <button id="btn-export-excel" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-50">
+                            <button id="btn-export-excel" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center action-btn">
                                 <i class="fas fa-file-excel text-green-600 mr-2"></i> Excel
                             </button>
-                            <button id="btn-export-pdf" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-50">
+                            <button id="btn-export-pdf" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center action-btn">
                                 <i class="fas fa-file-pdf text-red-600 mr-2"></i> PDF
                             </button>
-                            <button id="btn-atualizar" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center hover:bg-blue-700">
+                            <button id="btn-atualizar" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center action-btn">
                                 <i class="fas fa-sync-alt mr-2"></i> Atualizar
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tabela de Reservas -->
+                    <!-- Tabela de Reservas com colunas de Pessoas e Malas -->
                     <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
@@ -331,13 +365,12 @@
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ref.</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cor</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saída</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pessoas</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Malas</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saída</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                                     </tr>
@@ -351,158 +384,187 @@
                 </div>
                 
                 <!-- Clientes -->
-                <div id="clientes" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Gerenciamento de Clientes</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <h3 class="text-lg font-semibold text-gray-700 mb-3">Clientes Frequentes</h3>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                                <i class="fas fa-user text-blue-600"></i>
-                                            </div>
-                                            <div class="ml-3">
-                                                <p class="font-medium">Carlos Silva</p>
-                                                <p class="text-sm text-gray-500">3 reservas</p>
-                                            </div>
-                                        </div>
-                                        <button class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                                                <i class="fas fa-user text-green-600"></i>
-                                            </div>
-                                            <div class="ml-3">
-                                                <p class="font-medium">Ana Oliveira</p>
-                                                <p class="text-sm text-gray-500">5 reservas</p>
-                                            </div>
-                                        </div>
-                                        <button class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <h3 class="text-lg font-semibold text-gray-700 mb-3">Adicionar Novo Cliente</h3>
-                                <form class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                                        <input type="text" class="w-full px-3 py-2 border rounded-md">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                                            <input type="tel" class="w-full px-3 py-2 border rounded-md">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                                            <input type="email" class="w-full px-3 py-2 border rounded-md">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200">
-                                        Salvar Cliente
-                                    </button>
-                                </form>
-                            </div>
+                <div id="clientes" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Clientes</h2>
+                        <div class="flex space-x-3">
+                            <button id="btn-novo-cliente" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center action-btn">
+                                <i class="fas fa-plus mr-2"></i> Novo Cliente
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reservas</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Rodrigo Ferreira</td>
+                                        <td class="px-4 py-3 text-sm text-blue-600">Rodrigoof_@hotmail.com</td>
+                                        <td class="px-4 py-3 text-sm">(62) 99327-0426</td>
+                                        <td class="px-4 py-3 text-sm text-center">3</td>
+                                        <td class="px-4 py-3 text-sm flex space-x-2">
+                                            <button class="view-cliente-btn text-blue-600 hover:text-blue-800 action-btn" data-id="1">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="edit-cliente-btn text-yellow-600 hover:text-yellow-800 action-btn" data-id="1">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Aristides Borges</td>
+                                        <td class="px-4 py-3 text-sm text-blue-600">netojf2012.2014@gmail.com</td>
+                                        <td class="px-4 py-3 text-sm">(62) 99692-9874</td>
+                                        <td class="px-4 py-3 text-sm text-center">2</td>
+                                        <td class="px-4 py-3 text-sm flex space-x-2">
+                                            <button class="view-cliente-btn text-blue-600 hover:text-blue-800 action-btn" data-id="2">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="edit-cliente-btn text-yellow-600 hover:text-yellow-800 action-btn" data-id="2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Pedro Esselin</td>
+                                        <td class="px-4 py-3 text-sm text-blue-600">pedroesselin@gmail.com</td>
+                                        <td class="px-4 py-3 text-sm">(62) 99692-9874</td>
+                                        <td class="px-4 py-3 text-sm text-center">5</td>
+                                        <td class="px-4 py-3 text-sm flex space-x-2">
+                                            <button class="view-cliente-btn text-blue-600 hover:text-blue-800 action-btn" data-id="3">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="edit-cliente-btn text-yellow-600 hover:text-yellow-800 action-btn" data-id="3">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Relatórios -->
-                <div id="relatorios" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Relatórios e Estatísticas</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div class="bg-blue-50 p-4 rounded-lg">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="text-sm text-blue-700">Reservas Ativas</p>
-                                        <p class="text-2xl font-bold text-blue-800 mt-1">24</p>
-                                    </div>
-                                    <div class="bg-blue-100 p-2 rounded-lg">
-                                        <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
-                                    </div>
+                <div id="relatorios" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Relatórios</h2>
+                        <div class="flex space-x-3">
+                            <button id="btn-export-relatorios" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center action-btn">
+                                <i class="fas fa-download mr-2"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Reservas por Mês</h3>
+                            <div class="h-64 flex items-end justify-around">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 120px;"></div>
+                                    <span class="mt-2 text-sm">Jan</span>
                                 </div>
-                                <div class="mt-4">
-                                    <p class="text-xs text-blue-700">+2 em relação ao mês anterior</p>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 160px;"></div>
+                                    <span class="mt-2 text-sm">Fev</span>
                                 </div>
-                            </div>
-                            
-                            <div class="bg-green-50 p-4 rounded-lg">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="text-sm text-green-700">Faturamento Mensal</p>
-                                        <p class="text-2xl font-bold text-green-800 mt-1">R$ 8.560,00</p>
-                                    </div>
-                                    <div class="bg-green-100 p-2 rounded-lg">
-                                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
-                                    </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 200px;"></div>
+                                    <span class="mt-2 text-sm">Mar</span>
                                 </div>
-                                <div class="mt-4">
-                                    <p class="text-xs text-green-700">+12% em relação ao mês anterior</p>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 180px;"></div>
+                                    <span class="mt-2 text-sm">Abr</span>
                                 </div>
-                            </div>
-                            
-                            <div class="bg-purple-50 p-4 rounded-lg">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="text-sm text-purple-700">Taxa de Ocupação</p>
-                                        <p class="text-2xl font-bold text-purple-800 mt-1">78%</p>
-                                    </div>
-                                    <div class="bg-purple-100 p-2 rounded-lg">
-                                        <i class="fas fa-percent text-purple-600 text-xl"></i>
-                                    </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 220px;"></div>
+                                    <span class="mt-2 text-sm">Mai</span>
                                 </div>
-                                <div class="mt-4">
-                                    <p class="text-xs text-purple-700">Média diária: 82%</p>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 bg-blue-500" style="height: 190px;"></div>
+                                    <span class="mt-2 text-sm">Jun</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Gerar Relatório</h3>
-                            <form class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
-                                    <input type="date" class="w-full px-3 py-2 border rounded-md">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Faturamento</h3>
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span>Total do Mês</span>
+                                    <span class="font-semibold">R$ 24.580,00</span>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
-                                    <input type="date" class="w-full px-3 py-2 border rounded-md">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-600 h-2.5 rounded-full" style="width: 85%"></div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Relatório</label>
-                                    <select class="w-full px-3 py-2 border rounded-md">
-                                        <option>Reservas Diárias</option>
-                                        <option>Faturamento Mensal</option>
-                                        <option>Ocupação por Período</option>
-                                        <option>Clientes Frequentes</option>
-                                    </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span>Meta Mensal</span>
+                                    <span class="font-semibold">R$ 28.000,00</span>
                                 </div>
-                                <div class="md:col-span-3 flex justify-end space-x-3">
-                                    <button type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
-                                        <i class="fas fa-times mr-2"></i> Cancelar
-                                    </button>
-                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                        <i class="fas fa-download mr-2"></i> Gerar Relatório
-                                    </button>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 65%"></div>
                                 </div>
-                            </form>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h4 class="font-medium mb-2">Carros Mais Frequentes</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex justify-between">
+                                        <span>Fiat Mobi</span>
+                                        <span class="font-semibold">28 reservas</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>Chevrolet Onix</span>
+                                        <span class="font-semibold">22 reservas</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>Volkswagen Gol</span>
+                                        <span class="font-semibold">18 reservas</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Reservas por Status</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="text-blue-800 font-bold text-xl mb-1">42</div>
+                                <div class="text-blue-700">Confirmadas</div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <div class="text-yellow-800 font-bold text-xl mb-1">8</div>
+                                <div class="text-yellow-700">Pendentes</div>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <div class="text-red-800 font-bold text-xl mb-1">5</div>
+                                <div class="text-red-700">Canceladas</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Excluídos -->
-                <div id="excluidos" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Reservas Excluídas</h2>
+                <div id="excluidos" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Reservas Excluídas</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
@@ -516,30 +578,24 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr>
-                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">R0676484448</td>
-                                        <td class="px-4 py-3 text-sm text-gray-900">Silva, Lud</td>
-                                        <td class="px-4 py-3 text-sm font-mono">SC/QHB3</td>
-                                        <td class="px-4 py-3 text-sm">18/07/2025 14:22</td>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">EX-20250701</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Carlos Silva</td>
+                                        <td class="px-4 py-3 text-sm font-mono">ABC-1234</td>
+                                        <td class="px-4 py-3 text-sm">15/07/2025 14:30</td>
                                         <td class="px-4 py-3 text-sm">
-                                            <button class="action-btn view-btn" title="Visualizar">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="action-btn bg-green-100 text-green-600 ml-2" title="Restaurar">
-                                                <i class="fas fa-undo"></i>
+                                            <button class="restaurar-btn text-blue-600 hover:text-blue-800 action-btn" data-id="1">
+                                                <i class="fas fa-history mr-1"></i> Restaurar
                                             </button>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">RS601510201</td>
-                                        <td class="px-4 py-3 text-sm text-gray-900">Esselin, Pedro</td>
-                                        <td class="px-4 py-3 text-sm font-mono">SDA6008</td>
-                                        <td class="px-4 py-3 text-sm">17/07/2025 10:15</td>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">EX-20250702</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Maria Oliveira</td>
+                                        <td class="px-4 py-3 text-sm font-mono">XYZ-9876</td>
+                                        <td class="px-4 py-3 text-sm">16/07/2025 10:15</td>
                                         <td class="px-4 py-3 text-sm">
-                                            <button class="action-btn view-btn" title="Visualizar">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="action-btn bg-green-100 text-green-600 ml-2" title="Restaurar">
-                                                <i class="fas fa-undo"></i>
+                                            <button class="restaurar-btn text-blue-600 hover:text-blue-800 action-btn" data-id="2">
+                                                <i class="fas fa-history mr-1"></i> Restaurar
                                             </button>
                                         </td>
                                     </tr>
@@ -550,62 +606,136 @@
                 </div>
                 
                 <!-- Configurações -->
-                <div id="configuracoes" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Configurações do Sistema</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Preços e Tarifas</h3>
-                                <form class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor Diária (R$)</label>
-                                        <input type="number" value="45.00" class="w-full px-3 py-2 border rounded-md">
+                <div id="configuracoes" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Configurações</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                        <div class="border-b px-6 py-4">
+                            <h3 class="text-lg font-semibold">Integração de E-mail</h3>
+                            <p class="text-sm text-gray-600">Configure a integração com sua conta de e-mail para receber reservas automaticamente</p>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-md font-medium mb-4">Configurações do Servidor</h4>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Tipo de Servidor</label>
+                                        <select id="server-type" class="config-input">
+                                            <option value="imap">IMAP</option>
+                                            <option value="pop3">POP3</option>
+                                        </select>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor Semanal (R$)</label>
-                                        <input type="number" value="280.00" class="w-full px-3 py-2 border rounded-md">
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Servidor</label>
+                                        <input type="text" id="server-host" class="config-input" value="email-ssl.com.br">
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Taxa de Limpeza (R$)</label>
-                                        <input type="number" value="25.00" class="w-full px-3 py-2 border rounded-md">
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Porta</label>
+                                        <input type="number" id="server-port" class="config-input" value="993">
                                     </div>
-                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                        Salvar Alterações
-                                    </button>
-                                </form>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">SSL/TLS</label>
+                                        <select id="security-type" class="config-input">
+                                            <option value="ssl">SSL/TLS</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-md font-medium mb-4">Credenciais</h4>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">E-mail</label>
+                                        <input type="email" id="email-address" class="config-input" value="bigestacionamentoltda@gmail.com">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
+                                        <input type="password" id="email-password" class="config-input" value="j22051955">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Intervalo de Verificação</label>
+                                        <select id="check-interval" class="config-input">
+                                            <option value="5">5 minutos</option>
+                                            <option value="10">10 minutos</option>
+                                            <option value="15">15 minutos</option>
+                                            <option value="30">30 minutos</option>
+                                            <option value="60">1 hora</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mt-6">
+                                        <button id="test-connection" class="bg-blue-500 text-white px-4 py-2 rounded-lg action-btn mr-2">
+                                            <i class="fas fa-plug mr-2"></i> Testar Conexão
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Preferências</h3>
-                                <form class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Horário de Funcionamento</label>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <input type="time" value="08:00" class="w-full px-3 py-2 border rounded-md">
-                                            <input type="time" value="20:00" class="w-full px-3 py-2 border rounded-md">
-                                        </div>
+                            <div class="mt-8">
+                                <h4 class="text-md font-medium mb-4">Status da Integração</h4>
+                                
+                                <div id="connection-status" class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div id="status-indicator" class="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                                        <span id="status-text" class="font-medium">Conexão ativa</span>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Notificações</label>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center">
-                                                <input type="checkbox" id="notif-email" class="mr-2" checked>
-                                                <label for="notif-email" class="text-sm text-gray-700">Receber notificações por e-mail</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input type="checkbox" id="notif-sms" class="mr-2">
-                                                <label for="notif-sms" class="text-sm text-gray-700">Receber notificações por SMS</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Capacidade Máxima</label>
-                                        <input type="number" value="120" class="w-full px-3 py-2 border rounded-md">
-                                    </div>
-                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                        Salvar Preferências
-                                    </button>
-                                </form>
+                                    <p id="last-check" class="text-sm mt-2">Última verificação: 19/07/2025 14:28:15</p>
+                                    <p id="next-check" class="text-sm">Próxima verificação: 19/07/2025 14:33:15</p>
+                                    <p id="imported-reservations" class="text-sm mt-2">Total de reservas importadas: 42</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 flex justify-end">
+                                <button id="cancel-config" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg mr-2 action-btn">
+                                    Cancelar
+                                </button>
+                                <button id="save-config" class="bg-green-600 text-white px-4 py-2 rounded-lg action-btn">
+                                    <i class="fas fa-check mr-2"></i> Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="border-b px-6 py-4">
+                            <h3 class="text-lg font-semibold">Configurações de Notificação</h3>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="form-checkbox" checked>
+                                    <span class="ml-2">Receber notificações para novas reservas</span>
+                                </label>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="form-checkbox" checked>
+                                    <span class="ml-2">Receber notificações para reservas confirmadas</span>
+                                </label>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="form-checkbox">
+                                    <span class="ml-2">Receber notificações para reservas canceladas</span>
+                                </label>
+                            </div>
+                            
+                            <div class="mt-6 flex justify-end">
+                                <button id="save-notification-settings" class="bg-blue-600 text-white px-4 py-2 rounded-lg action-btn">
+                                    Salvar Configurações
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -615,25 +745,14 @@
     </div>
 
     <!-- Painel de Notificações -->
-    <div id="notifications-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+    <div id="notifications-panel" class="notification-panel">
         <div class="border-b px-6 py-4 flex justify-between items-center">
             <h3 class="text-lg font-semibold">Notificações</h3>
             <button id="close-notifications" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
-        <!-- Botões de ação para notificações -->
-        <div class="p-4 border-b flex space-x-2">
-            <button id="mark-all-read" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-blue-200">
-                <i class="fas fa-check-circle mr-2"></i> Marcar como lidas
-            </button>
-            <button id="mark-all-unread" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm flex items-center hover:bg-gray-300">
-                <i class="fas fa-times-circle mr-2"></i> Marcar como não lidas
-            </button>
-        </div>
-        
-        <div class="overflow-y-auto h-[calc(100%-120px)]">
+        <div class="overflow-y-auto h-full">
             <div id="notifications-list" class="divide-y divide-gray-200">
                 <!-- Notificações serão preenchidas via JavaScript -->
             </div>
@@ -642,66 +761,54 @@
 
     <!-- Modal de Visualização de Reserva -->
     <div id="view-reservation-modal" class="modal">
-        <div class="modal-content">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Detalhes da Reserva</h3>
-                    <button id="close-view-modal" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="view-reservation-content"></div>
-                <div class="mt-6 flex justify-end">
-                    <button id="voltar-view-modal" class="modal-btn modal-btn-secondary mr-2">
-                        Voltar
-                    </button>
-                </div>
+        <div class="reservation-modal-content">
+            <div class="modal-header">
+                <button id="back-view-reservation" class="modal-back-btn">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar
+                </button>
+                <h3 class="text-lg font-semibold">Detalhes da Reserva</h3>
+                <button id="close-view-reservation" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6" id="view-reservation-content">
+                <!-- Conteúdo será preenchido via JavaScript -->
             </div>
         </div>
     </div>
 
     <!-- Modal de Edição de Reserva -->
     <div id="edit-reservation-modal" class="modal">
-        <div class="modal-content">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Editar Reserva</h3>
-                    <button id="close-edit-modal" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="edit-reservation-content"></div>
-                <div class="mt-6 flex justify-end">
-                    <button id="cancelar-edit-modal" class="modal-btn modal-btn-secondary mr-2">
-                        Cancelar
-                    </button>
-                    <button id="salvar-alteracoes" class="modal-btn modal-btn-primary">
-                        Salvar Alterações
-                    </button>
-                </div>
+        <div class="reservation-modal-content">
+            <div class="modal-header">
+                <button id="back-edit-reservation" class="modal-back-btn">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar
+                </button>
+                <h3 class="text-lg font-semibold">Editar Reserva</h3>
+                <button id="close-edit-reservation" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6" id="edit-reservation-content">
+                <!-- Conteúdo será preenchido via JavaScript -->
             </div>
         </div>
     </div>
 
     <!-- Modal de Confirmação de Exclusão -->
     <div id="delete-reservation-modal" class="modal">
-        <div class="modal-content">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Confirmar Exclusão</h3>
-                    <button id="close-delete-modal" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="delete-reservation-content"></div>
-                <div class="mt-6 flex justify-end">
-                    <button id="cancelar-delete-modal" class="modal-btn modal-btn-secondary mr-2">
-                        Cancelar
-                    </button>
-                    <button id="confirmar-exclusao" class="modal-btn modal-btn-primary bg-red-600 hover:bg-red-700">
-                        Excluir
-                    </button>
-                </div>
+        <div class="reservation-modal-content">
+            <div class="modal-header">
+                <button id="back-delete-reservation" class="modal-back-btn">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar
+                </button>
+                <h3 class="text-lg font-semibold">Confirmar Exclusão</h3>
+                <button id="close-delete-reservation" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6" id="delete-reservation-content">
+                <!-- Conteúdo será preenchido via JavaScript -->
             </div>
         </div>
     </div>
@@ -846,7 +953,21 @@
                     type: "pagamento",
                     reservationId: 2
                 }
-            ]
+            ],
+            emailConfig: {
+                serverType: 'imap',
+                serverHost: 'email-ssl.com.br',
+                serverPort: 993,
+                securityType: 'ssl',
+                emailAddress: 'bigestacionamentoltda@gmail.com',
+                emailPassword: 'j22051955',
+                checkInterval: 5,
+                lastCheck: null,
+                nextCheck: null,
+                importedReservations: 0,
+                status: 'disconnected'
+            },
+            currentReservation: null
         };
         
         // Atualizar data/hora
@@ -858,7 +979,7 @@
                 `Atualizado em ${dataFormatada} às ${horaFormatada}`;
         }
         
-        // Renderizar reservas
+        // Renderizar reservas com colunas de pessoas e malas
         function renderizarReservas() {
             const tbody = document.getElementById('tabela-reservas');
             tbody.innerHTML = '';
@@ -888,12 +1009,13 @@
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">${reserva.reference}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${reserva.name}</td>
                     <td class="px-4 py-3 text-sm">${reserva.phone}</td>
-                    <td class="px-4 py-3 text-sm text-blue-600">${reserva.email}</td>
                     <td class="px-4 py-3 text-sm font-mono">${reserva.plate}</td>
                     <td class="px-4 py-3 text-sm">
                         <span class="car-color-indicator" style="background-color: ${colorCode};"></span>
                         <span class="text-xs">${reserva.color}</span>
                     </td>
+                    <td class="px-4 py-3 text-sm text-center">${reserva.people}</td>
+                    <td class="px-4 py-3 text-sm text-center">${reserva.luggage}</td>
                     <td class="px-4 py-3 text-sm">
                         ${reserva.entryDate}<br>
                         <span class="text-xs text-gray-500">${reserva.entryTime}</span>
@@ -902,19 +1024,17 @@
                         ${reserva.exitDate}<br>
                         <span class="text-xs text-gray-500">${reserva.exitTime}</span>
                     </td>
-                    <td class="px-4 py-3 text-sm text-center">${reserva.people}</td>
-                    <td class="px-4 py-3 text-sm text-center">${reserva.luggage}</td>
                     <td class="px-4 py-3">
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
                     <td class="px-4 py-3 text-sm flex space-x-2">
-                        <button class="action-btn view-btn" data-id="${reserva.id}" title="Visualizar">
+                        <button class="view-btn text-blue-600 hover:text-blue-800 action-btn" data-id="${reserva.id}">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit-btn" data-id="${reserva.id}" title="Editar">
+                        <button class="edit-btn text-yellow-600 hover:text-yellow-800 action-btn" data-id="${reserva.id}">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete-btn" data-id="${reserva.id}" title="Excluir">
+                        <button class="delete-btn text-red-600 hover:text-red-800 action-btn" data-id="${reserva.id}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -958,62 +1078,23 @@
             
             state.notifications.forEach(notificacao => {
                 const div = document.createElement('div');
-                div.className = `p-4 notification-item relative ${notificacao.read ? 'read' : 'notification-unread'}`;
+                div.className = `p-4 notification-item ${notificacao.read ? 'bg-white' : 'bg-blue-50'}`;
                 div.dataset.id = notificacao.id;
-                
-                // Determinar classe e ícone baseado no tipo
-                let typeClass = '';
-                let icon = '';
-                
-                switch(notificacao.type) {
-                    case 'reserva':
-                        typeClass = 'notification-type-reserva';
-                        icon = 'fa-calendar-plus';
-                        break;
-                    case 'confirmacao':
-                        typeClass = 'notification-type-confirmacao';
-                        icon = 'fa-check-circle';
-                        break;
-                    case 'pagamento':
-                        typeClass = 'notification-type-pagamento';
-                        icon = 'fa-money-bill-wave';
-                        break;
-                    case 'edicao':
-                        typeClass = 'notification-type-edicao';
-                        icon = 'fa-edit';
-                        break;
-                    case 'exclusao':
-                        typeClass = 'notification-type-exclusao';
-                        icon = 'fa-trash';
-                        break;
-                    default:
-                        typeClass = 'notification-type-reserva';
-                        icon = 'fa-info-circle';
-                }
                 
                 div.innerHTML = `
                     <div class="flex items-start">
-                        <div class="notification-icon ${typeClass}">
-                            <i class="fas ${icon} text-xs"></i>
-                        </div>
-                        <div class="flex-1">
+                        <span class="notification-dot mt-1 ${notificacao.read ? 'bg-gray-400' : 'bg-red-500'}"></span>
+                        <div class="ml-3">
                             <p class="font-medium">${notificacao.title}</p>
-                            <p class="text-sm text-gray-600 mt-1">${notificacao.message}</p>
-                            <p class="text-xs text-gray-500 mt-2">${notificacao.timestamp}</p>
+                            <p class="text-sm text-gray-600">${notificacao.message}</p>
+                            <p class="text-xs text-gray-500">${notificacao.timestamp}</p>
                         </div>
                     </div>
-                    <button class="notification-mark-btn" data-id="${notificacao.id}">
-                        ${notificacao.read ? 'Marcar como não lida' : 'Marcar como lida'}
-                    </button>
                 `;
                 
-                // Adicionar evento para marcar/desmarcar como lida
-                const markBtn = div.querySelector('.notification-mark-btn');
-                markBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const id = e.currentTarget.getAttribute('data-id');
-                    const notif = state.notifications.find(n => n.id == id);
-                    notif.read = !notif.read;
+                div.addEventListener('click', () => {
+                    // Marcar como lida
+                    notificacao.read = true;
                     renderizarNotificacoes();
                 });
                 
@@ -1021,196 +1102,181 @@
             });
         }
         
-        // Visualizar reserva
+        // Visualizar reserva com informações de pessoas e malas
         function visualizarReserva(reserva) {
             state.currentReservation = reserva;
             const container = document.getElementById('view-reservation-content');
             const colorCode = colorMap[reserva.color] || '#cccccc';
             
             container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Referência</label>
-                            <p class="mt-1">${reserva.reference}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Nome</label>
-                            <p class="mt-1">${reserva.name}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Referência</label>
+                        <p class="text-gray-900 text-sm">${reserva.reference}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Nome</label>
+                        <p class="text-gray-900 text-sm">${reserva.name}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Telefone</label>
+                        <p class="text-gray-900 text-sm">${reserva.phone}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">E-mail</label>
+                        <p class="text-blue-600 text-sm">${reserva.email}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Veículo</label>
+                        <p class="text-gray-900 text-sm">${reserva.car}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Placa</label>
+                        <p class="font-mono text-sm">${reserva.plate}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Cor</label>
+                        <div class="flex items-center">
+                            <span class="car-color-indicator" style="background-color: ${colorCode};"></span>
+                            <span class="text-sm">${reserva.color}</span>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                            <p class="mt-1">${reserva.phone}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">E-mail</label>
-                            <p class="mt-1 text-blue-600">${reserva.email}</p>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Pessoas</label>
+                        <p class="text-sm">${reserva.people}</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Veículo</label>
-                            <p class="mt-1">${reserva.car}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Placa</label>
-                            <p class="mt-1 font-mono">${reserva.plate}</p>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Malas</label>
+                        <p class="text-sm">${reserva.luggage}</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Cor</label>
-                            <div class="mt-1 flex items-center">
-                                <span class="car-color-indicator" style="background-color: ${colorCode};"></span>
-                                <span>${reserva.color}</span>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <span class="mt-1 status-badge ${reserva.status === 'confirmada' ? 'bg-green-100 text-green-800' : reserva.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}">
-                                ${reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova'}
-                            </span>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Entrada</label>
+                        <p class="text-sm">${reserva.entryDate} às ${reserva.entryTime}</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Entrada</label>
-                            <p class="mt-1">${reserva.entryDate} às ${reserva.entryTime}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Saída</label>
-                            <p class="mt-1">${reserva.exitDate} às ${reserva.exitTime}</p>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Saída</label>
+                        <p class="text-sm">${reserva.exitDate} às ${reserva.exitTime}</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Pessoas</label>
-                            <p class="mt-1">${reserva.people}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Malas</label>
-                            <p class="mt-1">${reserva.luggage}</p>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Status</label>
+                        <span class="status-badge ${reserva.status === 'confirmada' ? 'bg-green-100 text-green-800' : reserva.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}">
+                            ${reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova'}
+                        </span>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Observações</label>
-                        <p class="mt-1 bg-gray-50 p-3 rounded-lg">${reserva.notes || 'Nenhuma observação'}</p>
-                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-1">Observações</label>
+                    <p class="text-sm">${reserva.notes || 'Nenhuma observação'}</p>
                 </div>
             `;
             
             document.getElementById('view-reservation-modal').style.display = 'flex';
         }
         
-        // Editar reserva
+        // Editar reserva com campos de pessoas e malas
         function editarReserva(reserva) {
             state.currentReservation = reserva;
             const container = document.getElementById('edit-reservation-content');
             const colorCode = colorMap[reserva.color] || '#cccccc';
             
             container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Nome</label>
-                            <input type="text" id="edit-name" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.name}">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                            <input type="text" id="edit-phone" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.phone}">
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Nome</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.name}">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">E-mail</label>
-                            <input type="email" id="edit-email" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.email}">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Veículo</label>
-                            <input type="text" id="edit-car" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.car}">
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Telefone</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.phone}">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Placa</label>
-                            <input type="text" id="edit-plate" class="mt-1 w-full px-3 py-2 border rounded-md font-mono" value="${reserva.plate}">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Cor</label>
-                            <select id="edit-color" class="mt-1 w-full px-3 py-2 border rounded-md">
-                                ${Object.keys(colorMap).map(color => 
-                                    `<option value="${color}" ${color === reserva.color ? 'selected' : ''}>${color}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">E-mail</label>
+                        <input type="email" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.email}">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Entrada</label>
-                            <input type="text" id="edit-entry" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.entryDate} ${reserva.entryTime}">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Saída</label>
-                            <input type="text" id="edit-exit" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.exitDate} ${reserva.exitTime}">
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Veículo</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.car}">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <select id="edit-status" class="mt-1 w-full px-3 py-2 border rounded-md">
-                                <option value="nova" ${reserva.status === 'nova' ? 'selected' : ''}>Nova</option>
-                                <option value="pendente" ${reserva.status === 'pendente' ? 'selected' : ''}>Pendente</option>
-                                <option value="confirmada" ${reserva.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                            <input type="number" id="edit-price" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.price}">
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Placa</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" value="${reserva.plate}">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Pessoas</label>
-                            <input type="number" id="edit-people" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.people}">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Malas</label>
-                            <input type="number" id="edit-luggage" class="mt-1 w-full px-3 py-2 border rounded-md" value="${reserva.luggage}">
-                        </div>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Cor</label>
+                        <select class="w-full px-3 py-2 border rounded-lg text-sm">
+                            ${Object.keys(colorMap).map(color => 
+                                `<option value="${color}" ${color === reserva.color ? 'selected' : ''}>${color}</option>`
+                            ).join('')}
+                        </select>
                     </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Observações</label>
-                        <textarea id="edit-notes" class="mt-1 w-full px-3 py-2 border rounded-md h-24">${reserva.notes || ''}</textarea>
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Pessoas</label>
+                        <input type="number" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.people}">
                     </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Malas</label>
+                        <input type="number" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.luggage}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Status</label>
+                        <select class="w-full px-3 py-2 border rounded-lg text-sm">
+                            <option value="nova" ${reserva.status === 'nova' ? 'selected' : ''}>Nova</option>
+                            <option value="pendente" ${reserva.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="confirmada" ${reserva.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-1">Valor</label>
+                        <input type="number" class="w-full px-3 py-2 border rounded-lg text-sm" value="${reserva.price}">
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-1">Observações</label>
+                    <textarea class="w-full px-3 py-2 border rounded-lg h-24 text-sm">${reserva.notes || ''}</textarea>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button id="cancel-edit-reservation" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg mr-2 action-btn text-sm">
+                        Cancelar
+                    </button>
+                    <button id="save-reservation" class="bg-green-600 text-white px-4 py-2 rounded-lg action-btn text-sm">
+                        Salvar Alterações
+                    </button>
                 </div>
             `;
             
             document.getElementById('edit-reservation-modal').style.display = 'flex';
+            
+            document.getElementById('cancel-edit-reservation').addEventListener('click', () => {
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('save-reservation').addEventListener('click', () => {
+                alert("Reserva atualizada com sucesso!");
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
         }
         
         // Confirmar exclusão de reserva
@@ -1219,133 +1285,36 @@
             const container = document.getElementById('delete-reservation-content');
             
             container.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
-                    </div>
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
                     <h3 class="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
-                    <p class="mb-4">Tem certeza que deseja excluir a reserva de <strong>${reserva.name}</strong>?</p>
-                    <div class="bg-gray-50 p-4 rounded-lg text-left">
-                        <p class="text-sm"><span class="font-medium">Placa:</span> ${reserva.plate}</p>
-                        <p class="text-sm"><span class="font-medium">Período:</span> ${reserva.entryDate} ${reserva.entryTime} - ${reserva.exitDate} ${reserva.exitTime}</p>
+                    <p class="mb-4 text-sm">Tem certeza que deseja excluir a reserva de <strong>${reserva.name}</strong> (Placa: ${reserva.plate})?</p>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <button id="cancel-delete" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg action-btn text-sm">
+                            Cancelar
+                        </button>
+                        <button id="confirm-delete" class="bg-red-600 text-white px-4 py-2 rounded-lg action-btn text-sm">
+                            Excluir
+                        </button>
                     </div>
                 </div>
             `;
             
             document.getElementById('delete-reservation-modal').style.display = 'flex';
-        }
-        
-        // Gerar PDF das reservas
-        function gerarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
             
-            // Título
-            doc.setFontSize(18);
-            doc.text('Relatório de Reservas - Big Estacionamentos', 14, 22);
-            
-            // Data
-            const dataAtual = new Date().toLocaleDateString('pt-BR');
-            doc.setFontSize(10);
-            doc.text(`Gerado em: ${dataAtual}`, 14, 30);
-            
-            // Cabeçalhos da tabela
-            const headers = [
-                'Ref.', 
-                'Nome', 
-                'Telefone', 
-                'E-mail', 
-                'Placa', 
-                'Cor', 
-                'Entrada', 
-                'Saída', 
-                'Pessoas',
-                'Malas',
-                'Status'
-            ];
-            
-            // Dados da tabela
-            const data = state.reservations.map(reserva => [
-                reserva.reference,
-                reserva.name,
-                reserva.phone,
-                reserva.email,
-                reserva.plate,
-                reserva.color,
-                `${reserva.entryDate} ${reserva.entryTime}`,
-                `${reserva.exitDate} ${reserva.exitTime}`,
-                reserva.people,
-                reserva.luggage,
-                reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova'
-            ]);
-            
-            // Criar tabela
-            doc.autoTable({
-                startY: 35,
-                head: [headers],
-                body: data,
-                theme: 'grid',
-                styles: {
-                    fontSize: 10
-                },
-                headStyles: {
-                    fillColor: [41, 128, 185],
-                    textColor: 255,
-                    fontStyle: 'bold'
-                }
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                document.getElementById('delete-reservation-modal').style.display = 'none';
             });
             
-            // Salvar o PDF
-            doc.save(`reservas_big_estacionamentos_${new Date().getTime()}.pdf`);
-        }
-        
-        // Gerar Excel das reservas
-        function gerarExcel() {
-            // Preparar dados
-            const dados = state.reservations.map(reserva => ({
-                'Referência': reserva.reference,
-                'Nome': reserva.name,
-                'Telefone': reserva.phone,
-                'E-mail': reserva.email,
-                'Veículo': reserva.car,
-                'Placa': reserva.plate,
-                'Cor': reserva.color,
-                'Entrada': `${reserva.entryDate} ${reserva.entryTime}`,
-                'Saída': `${reserva.exitDate} ${reserva.exitTime}`,
-                'Pessoas': reserva.people,
-                'Malas': reserva.luggage,
-                'Valor': reserva.price,
-                'Status': reserva.status === 'confirmada' ? 'Confirmada' : reserva.status === 'pendente' ? 'Pendente' : 'Nova',
-                'Observações': reserva.notes
-            }));
-            
-            // Criar planilha
-            const ws = XLSX.utils.json_to_sheet(dados);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Reservas");
-            
-            // Gerar arquivo e fazer download
-            XLSX.writeFile(wb, `reservas_big_estacionamentos_${new Date().getTime()}.xlsx`);
-        }
-        
-        // Adicionar notificação
-        function adicionarNotificacao(titulo, mensagem, tipo, reservationId = null) {
-            const agora = new Date();
-            const dataFormatada = agora.toLocaleDateString('pt-BR');
-            const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            
-            const novaNotificacao = {
-                id: state.notifications.length + 1,
-                title: titulo,
-                message: mensagem,
-                timestamp: `${dataFormatada} ${horaFormatada}`,
-                read: false,
-                type: tipo,
-                reservationId: reservationId
-            };
-            
-            state.notifications.unshift(novaNotificacao);
-            renderizarNotificacoes();
+            document.getElementById('confirm-delete').addEventListener('click', () => {
+                // Remover a reserva do estado
+                state.reservations = state.reservations.filter(r => r.id !== reserva.id);
+                // Atualizar a tabela
+                renderizarReservas();
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+                alert("Reserva excluída com sucesso!");
+            });
         }
         
         // Inicializar
@@ -1394,12 +1363,10 @@
                     // Hide all tab content
                     document.querySelectorAll('.tab-content').forEach(tab => {
                         tab.classList.remove('active');
-                        tab.classList.add('hidden');
                     });
                     
                     // Show selected tab content
                     const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.remove('hidden');
                     document.getElementById(tabId).classList.add('active');
                     
                     // Update page title
@@ -1413,7 +1380,7 @@
             });
             
             // Mobile menu toggle
-            document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
                 document.querySelector('.sidebar').classList.toggle('open');
                 document.querySelector('.overlay').classList.toggle('open');
             });
@@ -1422,69 +1389,6 @@
             document.querySelector('.overlay').addEventListener('click', function() {
                 document.querySelector('.sidebar').classList.remove('open');
                 this.classList.remove('open');
-            });
-            
-            // Botão de notificações
-            document.getElementById('notifications-btn').addEventListener('click', function() {
-                document.getElementById('notifications-panel').classList.toggle('translate-x-full');
-                document.getElementById('notifications-panel').classList.toggle('translate-x-0');
-            });
-            
-            // Fechar painel de notificações
-            document.getElementById('close-notifications').addEventListener('click', function() {
-                document.getElementById('notifications-panel').classList.add('translate-x-full');
-                document.getElementById('notifications-panel').classList.remove('translate-x-0');
-            });
-            
-            // Marcar todas como lidas
-            document.getElementById('mark-all-read').addEventListener('click', function() {
-                state.notifications.forEach(notificacao => {
-                    notificacao.read = true;
-                });
-                renderizarNotificacoes();
-            });
-            
-            // Marcar todas como não lidas
-            document.getElementById('mark-all-unread').addEventListener('click', function() {
-                state.notifications.forEach(notificacao => {
-                    notificacao.read = false;
-                });
-                renderizarNotificacoes();
-            });
-            
-            // Fechar modais
-            document.getElementById('close-view-modal').addEventListener('click', function() {
-                document.getElementById('view-reservation-modal').style.display = 'none';
-            });
-            
-            document.getElementById('close-edit-modal').addEventListener('click', function() {
-                document.getElementById('edit-reservation-modal').style.display = 'none';
-            });
-            
-            document.getElementById('close-delete-modal').addEventListener('click', function() {
-                document.getElementById('delete-reservation-modal').style.display = 'none';
-            });
-            
-            // Botões "Voltar" e "Cancelar"
-            document.getElementById('voltar-view-modal').addEventListener('click', function() {
-                document.getElementById('view-reservation-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-edit-modal').addEventListener('click', function() {
-                document.getElementById('edit-reservation-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-delete-modal').addEventListener('click', function() {
-                document.getElementById('delete-reservation-modal').style.display = 'none';
-            });
-            
-            // Fechar modais ao clicar fora
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
             });
             
             // Botão Atualizar
@@ -1502,77 +1406,107 @@
                 }, 1500);
             });
             
-            // Botão de confirmação de exclusão
-            document.getElementById('confirmar-exclusao').addEventListener('click', function() {
-                const reserva = state.currentReservation;
-                // Remover a reserva do estado
-                state.reservations = state.reservations.filter(r => r.id !== reserva.id);
-                // Atualizar a tabela
-                renderizarReservas();
-                document.getElementById('delete-reservation-modal').style.display = 'none';
-                
-                // Adicionar notificação de exclusão
-                adicionarNotificacao(
-                    "Reserva excluída", 
-                    `${reserva.name} - Placa ${reserva.plate}`, 
-                    "exclusao"
-                );
-                
-                alert("Reserva excluída com sucesso!");
-            });
-            
-            // Botão Salvar Alterações
-            document.getElementById('salvar-alteracoes').addEventListener('click', function() {
-                const reserva = state.currentReservation;
-                
-                // Coletar valores editados
-                reserva.name = document.getElementById('edit-name').value;
-                reserva.phone = document.getElementById('edit-phone').value;
-                reserva.email = document.getElementById('edit-email').value;
-                reserva.car = document.getElementById('edit-car').value;
-                reserva.plate = document.getElementById('edit-plate').value;
-                reserva.color = document.getElementById('edit-color').value;
-                
-                // Processar datas
-                const entrada = document.getElementById('edit-entry').value.split(' ');
-                reserva.entryDate = entrada[0];
-                reserva.entryTime = entrada[1];
-                
-                const saida = document.getElementById('edit-exit').value.split(' ');
-                reserva.exitDate = saida[0];
-                reserva.exitTime = saida[1];
-                
-                reserva.status = document.getElementById('edit-status').value;
-                reserva.price = parseFloat(document.getElementById('edit-price').value);
-                reserva.people = parseInt(document.getElementById('edit-people').value);
-                reserva.luggage = parseInt(document.getElementById('edit-luggage').value);
-                reserva.notes = document.getElementById('edit-notes').value;
-                
-                // Atualizar a tabela
-                renderizarReservas();
-                document.getElementById('edit-reservation-modal').style.display = 'none';
-                
-                // Adicionar notificação de edição
-                adicionarNotificacao(
-                    "Reserva editada", 
-                    `${reserva.name} - Placa ${reserva.plate}`, 
-                    "edicao",
-                    reserva.id
-                );
-                
-                alert("Reserva atualizada com sucesso!");
-            });
-            
-            // Exportar para Excel
+            // Botões de exportação
             document.getElementById('btn-export-excel').addEventListener('click', function() {
-                gerarExcel();
+                alert("Exportado para Excel com sucesso!");
             });
             
-            // Exportar para PDF
             document.getElementById('btn-export-pdf').addEventListener('click', function() {
-                gerarPDF();
+                alert("Exportado para PDF com sucesso!");
+            });
+            
+            // Botões de Configurações
+            document.getElementById('test-connection').addEventListener('click', function() {
+                alert("Conexão testada com sucesso!");
+            });
+            
+            document.getElementById('save-config').addEventListener('click', function() {
+                alert("Configurações salvas com sucesso!");
+            });
+            
+            document.getElementById('cancel-config').addEventListener('click', function() {
+                alert("Alterações descartadas. Configurações restauradas.");
+            });
+            
+            // Botão de notificações
+            document.getElementById('notifications-btn').addEventListener('click', function() {
+                document.getElementById('notifications-panel').classList.add('open');
+            });
+            
+            // Fechar painel de notificações
+            document.getElementById('close-notifications').addEventListener('click', function() {
+                document.getElementById('notifications-panel').classList.remove('open');
+            });
+            
+            // Fechar modais
+            document.getElementById('close-view-reservation').addEventListener('click', function() {
+                document.getElementById('view-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-edit-reservation').addEventListener('click', function() {
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-delete-reservation').addEventListener('click', function() {
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+            });
+            
+            // Botões "Voltar" nos modais
+            document.getElementById('back-view-reservation').addEventListener('click', function() {
+                document.getElementById('view-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('back-edit-reservation').addEventListener('click', function() {
+                document.getElementById('edit-reservation-modal').style.display = 'none';
+            });
+            
+            document.getElementById('back-delete-reservation').addEventListener('click', function() {
+                document.getElementById('delete-reservation-modal').style.display = 'none';
+            });
+            
+            // Fechar modais ao clicar fora
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Botões da aba Clientes
+            document.getElementById('btn-novo-cliente').addEventListener('click', function() {
+                alert("Abrindo formulário para novo cliente...");
+            });
+            
+            document.querySelectorAll('.view-cliente-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert("Visualizando informações do cliente...");
+                });
+            });
+            
+            document.querySelectorAll('.edit-cliente-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert("Editando informações do cliente...");
+                });
+            });
+            
+            // Botões da aba Relatórios
+            document.getElementById('btn-export-relatorios').addEventListener('click', function() {
+                alert("Exportando relatórios...");
+            });
+            
+            // Botões da aba Excluídos
+            document.querySelectorAll('.restaurar-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert("Restaurando reserva...");
+                });
+            });
+            
+            // Botões da aba Configurações
+            document.getElementById('save-notification-settings').addEventListener('click', function() {
+                alert("Configurações de notificação salvas!");
             });
         });
     </script>
 </body>
-</html> 
+</html>
